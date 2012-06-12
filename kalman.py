@@ -1,21 +1,24 @@
 from numpy import *
 from numpy.linalg import *
 
+class process_model:
+	def __init__(self, F, Q):
+		self.F = F
+		self.Q = Q
+
 class observation_model:
 	def __init__(self, H, R):
 		self.H = array(H)
 		self.R = array(R)
 
 class kalman:
-	def __init__(self, x, P, F, Q):
+	def __init__(self, x, P):
 		self.x = x
 		self.P = P
-		self.F = F
-		self.Q = Q
 
-	def predict(self):
-		self.x = dot(self.F, self.x)
-		self.P = dot(self.F, dot(self.P, self.F.transpose())) + self.Q
+	def predict(self, process):
+		self.x = dot(process.F, self.x)
+		self.P = dot(process.F, dot(self.P, process.F.transpose())) + process.Q
 
 	def update(self, obs, *z):
 		y = array([z]).transpose() - dot(obs.H, self.x)

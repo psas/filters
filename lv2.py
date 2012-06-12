@@ -5,6 +5,7 @@ from numpy import *
 dt = 1.0 / 2500.0
 process_sigmasq = 3.0
 measurement_sigmasq = 1.0
+
 t = kalman.kalman(
 	x=zeros((9,1)),
 	P=array([
@@ -17,6 +18,9 @@ t = kalman.kalman(
 		[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 10., 0.0, 0.0],
 		[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
 		[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]]),
+)
+
+process = kalman.process_model(
 	F=array([
 		[1.0,  dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
 		[0.0, 1.0,  dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -63,5 +67,5 @@ for line in sys.stdin:
 		t.update(gps, float(li[2]))
 	else:
 		continue
-	t.predict()
+	t.predict(process)
 	print li[1], t.x[6][0], t.x[7][0], t.x[8][0]
