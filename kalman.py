@@ -6,6 +6,9 @@ class process_model:
 		self.F = F
 		self.Q = Q
 
+	def step(self, state):
+		return dot(self.F, state)
+
 class observation_model:
 	def __init__(self, H, R):
 		self.H = array(H)
@@ -17,8 +20,14 @@ class kalman:
 		self.P = P
 
 	def predict(self, process):
-		self.x = dot(process.F, self.x)
-		self.P = dot(process.F, dot(self.P, process.F.transpose())) + process.Q
+		F = process.F
+		if callable(F):
+			F = F(self.x)
+		Q = process.Q
+		if callable(Q):
+			Q = Q(self.x)
+		self.x = process.step(self.x)
+		self.P = dot(F, dot(self.P, F.transpose())) + Q
 
 	def update(self, obs, *z):
 		y = array([z]).transpose() - dot(obs.H, self.x)
