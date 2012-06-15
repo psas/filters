@@ -1,4 +1,5 @@
 import kalman
+import matplotlib.pyplot as plt
 from numpy import *
 from scipy.stats import norm
 
@@ -48,15 +49,34 @@ measurement = kalman.observation_model(
 	R=[[measurement_sigmasq]]
 )
 
+results = []
+
 true_amplitude = 1
 true_rv = norm(0, 0.3)
 true_theta = 0
-for t in xrange(int(1000 / Ts) + 1):
+for t in xrange(int(400 / Ts) + 1):
+	true_omega = 0.75 + 0.5 * sin(t * Ts * math.pi / 100)
+	true_theta = true_theta + Ts * true_omega
+	filt.predict(process)
+
 	true = true_amplitude * math.sin(true_theta)
 	noisy = true + true_rv.rvs()
 	filt.update(measurement, noisy)
 
-	print t * Ts, true, noisy, filt.x[0][0], filt.x[1][0], filt.x[2][0]
+	results.append([t * Ts, true, noisy, filt.x[0][0], filt.x[1][0], true_omega, filt.x[2][0]])
 
-	true_theta = true_theta + Ts * (1 + 0.5 * sin(t * Ts * math.pi / 100))
-	filt.predict(process)
+results = vstack(results)
+
+plt.subplot(211)
+plt.title('Sine wave')
+plt.plot(results[:,0], results[:,2], label='Measurement')
+plt.plot(results[:,0], results[:,3] - results[:,1], label='Residual')
+plt.legend()
+
+plt.subplot(212)
+plt.title('Frequency')
+plt.plot(results[:,0], results[:,5], label='True')
+plt.plot(results[:,0], results[:,6], label='Estimate')
+plt.legend()
+
+plt.show()
