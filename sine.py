@@ -1,6 +1,7 @@
 import kalman
 import matplotlib.pyplot as plt
 from numpy import *
+from scipy.integrate import odeint
 from scipy.stats import norm
 
 Ts = 0.2
@@ -16,6 +17,9 @@ filt = kalman.kalman(
 )
 
 class SineProcess:
+	def __init__(self):
+		self.stepsused = []
+
 	def F(self, state):
 		x = state[0][0]
 		omega = state[2][0]
@@ -25,14 +29,13 @@ class SineProcess:
 			[0.0, 0.0, 1.0]])
 
 	def step(self, state):
-		substeps = 100
-		stepsize = Ts / substeps
 		x, xdot, omega = state[0][0], state[1][0], state[2][0]
 		coeff = -(omega ** 2)
-		for _ in xrange(substeps):
-			xdotdot = coeff * x
-			xdot = xdot + stepsize * xdotdot
-			x = x + stepsize * xdot
+		def func(y, t):
+			return [coeff * y[1], y[0]]
+		results, info = odeint(func, [xdot, x], [0, Ts], full_output=True)
+		self.stepsused.append(info['nst'][0])
+		xdot, x = results[1]
 		return array([[x, xdot, omega]]).T
 
 	def Q(self, state):
@@ -64,6 +67,10 @@ for t in xrange(int(400 / Ts) + 1):
 	filt.update(measurement, noisy)
 
 	results.append([t * Ts, true, noisy, filt.x[0][0], filt.x[1][0], true_omega, filt.x[2][0]])
+
+print "integration steps: min=%s mean=%s max=%s" % (min(process.stepsused), sum(process.stepsused) / len(process.stepsused), max(process.stepsused))
+print "estimated final covariance:"
+print filt.P
 
 results = vstack(results)
 
