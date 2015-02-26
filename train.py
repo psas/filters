@@ -52,8 +52,16 @@ for acceleration in accelerations:
     estimated_positions.append(filt.x[0])
     estimated_velocities.append(filt.x[1])
 
+plt.subplot(211)
+plt.title('Position')
+plt.plot(estimated_positions, label='Estimate')
+plt.plot(true_positions, label='True')
+plt.legend()
+
+plt.subplot(212)
 plt.title('Velocity')
 plt.plot(estimated_velocities, label='Estimate')
 plt.plot(true_velocities, label='True')
 plt.legend()
+
 plt.show()
